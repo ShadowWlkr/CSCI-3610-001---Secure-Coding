@@ -108,3 +108,9 @@ dist/Project_0-Secure_Login_Pretest.exe
 
 - **Session Timeout**  
   Each login session is limited to **120 seconds** to reduce exposure to brute-force attempts.
+
+---
+
+## Code Explination
+
+
