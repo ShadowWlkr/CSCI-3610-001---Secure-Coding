@@ -84,7 +84,7 @@ dist/Project_0-Secure_Login_Pretest.exe
   - If this happens during testing, you can manually unblock yourself:  
     1. Press **Win + R**, type `regedit`, and press Enter.  
     2. Navigate to the registry path used by the app and remove your entry from the **Blocked Users** list.  
-    ⚠️ Only do this for testing. In a real deployment, blocked users would remain blocked at the server side.
+    ⚠️ Only do this for testing. In a real deployment, blocked users would remain blocked on the server side, and you would need to implement a proper workaround similar to how they would be handled in production.
 
 - **Testing Credentials**  
   - Default username: **`Mohg, Lord of Blood`**  
