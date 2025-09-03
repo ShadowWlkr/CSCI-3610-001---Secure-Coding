@@ -25,7 +25,7 @@ This project demonstrates how to build a secure GUI login system with registry-b
 
 ## 🛠️ Requirements
 
-- Python 3.9+ (Windows recommended, due to registry usage)  
+- Python 3.9+ (Windows recommended, due to registry usage but also because I made it only work in Windows, no Kali for you.)  
 - [PyInstaller](https://pyinstaller.org/)  
 - [ttkbootstrap](https://pypi.org/project/ttkbootstrap/)  
 - [PyArmor](https://github.com/dashingsoft/pyarmor) (**Required**)  
