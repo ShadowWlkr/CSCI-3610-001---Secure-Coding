@@ -27,8 +27,8 @@ from tkinter import messagebox
 """
 # ==================== App Config ====================
 APP_REG_PATH = r"Software\Project_0-Secure_Login_Pretest"   # Custom registry path to isolate data from common locations
-USERS_KEY_PATH = APP_REG_PATH + r"\Users"
-BLOCKED_USERS_PATH = APP_REG_PATH + r"\Blocked"
+USERS_KEY_PATH = APP_REG_PATH + r"\Users" # Used to house the hashed default username and password in register as if in serverside
+BLOCKED_USERS_PATH = APP_REG_PATH + r"\Blocked" #Used to house the hashed blocked user info in register as if in serverside
 
 # Session limitations to reduce brute force and time-based attacks
 MAX_RUNTIME_SECONDS = 120     # Prevents long-running access attempts (e.g., time-based enumeration)
@@ -259,7 +259,7 @@ def attempt_login():
     if password_ok:
         login_successful = True
         unblock_current_user()
-        messagebox.showinfo("Login Successful", "Congrats YOUR in -Jake 2025")
+        messagebox.showinfo("Login Successful", "You are successfully logged into the system.\n\"Congrats YOUR in -Jake 2025\"")
         app.destroy()
         sys.exit(0)
     else:
