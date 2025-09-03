@@ -40,7 +40,7 @@ pip install pyinstaller pyarmor ttkbootstrap
 
 ---
 
-## 🔒 Obfuscation (Required Step)
+## 🔒 Obfuscation
 
 Before building, you **must** obfuscate the code with PyArmor:
 
