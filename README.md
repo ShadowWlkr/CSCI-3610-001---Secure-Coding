@@ -80,5 +80,6 @@ dist/Project_0-Secure_Login_Pretest.exe
 - Running inside a VM or with a debugger will cause the program to exit immediately.  
 - Too many failed login attempts will block your user/device.  
 - For testing:  
-  - Default credentials are defined in the source (`CORRECT_USERNAME`, `CORRECT_PASSWORD`).  
+  - Default credentials are defined in the source (`Mohg, Lord of Blood`, `IOweUCookoutIGuess!23#`).
+  - Use the builti-in shortcut to allow for pasting ('ctrl -a -p')
 - Session is limited to **120 seconds** for security.  
