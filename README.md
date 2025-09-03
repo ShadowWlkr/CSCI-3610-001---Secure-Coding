@@ -15,7 +15,7 @@ This project demonstrates how to build a secure GUI login system with registry-b
   Features:
   - GUI login form (built with [ttkbootstrap](https://github.com/israel-dryer/ttkbootstrap))  
   - Strong password hashing with PBKDF2  
-  - Registry-based user storage  
+  - Registry-based user storage to emulate server-side blocklist 
   - Account lockout and blocklist  
   - Protection against brute-force, reverse engineering, and static analysis
 
