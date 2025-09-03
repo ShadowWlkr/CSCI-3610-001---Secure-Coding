@@ -2,13 +2,13 @@ import sys
 import os
 import time
 import re
-import hmac
-import hashlib
-import getpass
-import socket
-import uuid
+import hmac # Used for secure comparison for password hashes
+import hashlib # Used to perform secure hashing (SHA-256 + PBKDF2) for both password protection and device fingerprinting
+import getpass # Used to retrieve the current system username, used in fingerprinting the users computer
+import socket # Used to get host name of who is running the program, used in fingerprinting
+import uuid # Used to get MAC address of the users computer, used in fingerprinting
 from datetime import datetime
-import winreg
+import winreg # Used to interact with the Windows Registry, to simulate server-side of program
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
@@ -16,7 +16,7 @@ from tkinter import messagebox
 """
 ===== Should Resist =====
     - Debuggers       → exits if traced
-    - Virtual Machines → refuses VM environments
+    - Virtual Machines → fuses VM environments
     - Brute-force     → max attempts + delay + block
     - Reverse Eng.    → PyArmor obfuscation
     - Static Analysis → stripped, UPX packed
@@ -26,23 +26,23 @@ from tkinter import messagebox
      pyinstaller Project_0-Secure_Login_Pretest.spec
 """
 # ==================== App Config ====================
-APP_REG_PATH = r"Software\Project_0-Secure_Login_Pretest"   # Custom registry path to isolate data from common locations
+APP_REG_PATH = r"Software\Project_0-Secure_Login_Pretest" # Custom registry path to isolate data from common locations
 USERS_KEY_PATH = APP_REG_PATH + r"\Users" # Used to house the hashed default username and password in register as if in serverside
-BLOCKED_USERS_PATH = APP_REG_PATH + r"\Blocked" #Used to house the hashed blocked user info in register as if in serverside
+BLOCKED_USERS_PATH = APP_REG_PATH + r"\Blocked" # Used to house the hashed blocked user info in register as if in serverside
 
 # Session limitations to reduce brute force and time-based attacks
-MAX_RUNTIME_SECONDS = 120     # Prevents long-running access attempts (e.g., time-based enumeration)
-MAX_ATTEMPTS = 3              # Limits brute force attempts
-FAILURE_DELAY_SECONDS = 1.0   # Throttles login failures to slow down attackers
+MAX_RUNTIME_SECONDS = 120 # Prevents long-running access attempts (e.g., time-based enumeration)
+MAX_ATTEMPTS = 3 # Limits brute force attempts
+FAILURE_DELAY_SECONDS = 1.0 # Slow down attackers in how fast they can input their attempts
 
 # Strong password hashing parameters
-PBKDF2_ITERATIONS = 200_000   # High iteration count increases computational cost for attackers
-HASH_ALG = "sha256"
-SALT_LEN = 16                 # Salt defends against precomputed (rainbow table) attacks
+PBKDF2_ITERATIONS = 200_000 # High iteration count == High computational cost for attackers
+HASH_ALG = "sha256" # Type of hashing algorithm used for passwords and fingerprinting 
+SALT_LEN = 16 # Length of salt added before hashing valuable data
 
-# Hardcoded credentials for demo or bootstrap purposes
+# Hardcoded credentials
 CORRECT_USERNAME = "Mohg, Lord of Blood"
-CORRECT_PASSWORD = "IOweUCookoutIGuess!23#"
+CORRECT_PASSWORD = "IOweUCookoutIGuess!23#" # Not really
 DUMMY_HASH_HEX = "c15fcb7fc756ca25f530f150efb659f4422bdbf1aa9ba66794891c540dba0db1"  # Used to mitigate timing attacks when username is invalid
 
 # Prevent common usernames often targeted by bots
@@ -51,16 +51,16 @@ FORBIDDEN_USERNAMES = {
 }
 
 # ==================== Registry Helpers ====================
-def _ensure_key(path: str):
-    return winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, path, 0, winreg.KEY_ALL_ACCESS)
+def _ensure_key(path: str): # To create key (folder in Registry data) to house all subkeys and values
+    return winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, path, 0, winreg.KEY_ALL_ACCESS) # Get root key, create that key from specified path in registry, 0 for reserved idky, and allow access to write and update values in this key
 
-def reg_write(k, name, value, kind=winreg.REG_SZ):
-    winreg.SetValueEx(k, name, 0, kind, value)
+def reg_write(k, name, value, kind=winreg.REG_SZ): # To write a value into the Windows Registry under an already opened key handle k
+    winreg.SetValueEx(k, name, 0, kind, value) # Open registry key, name value, reserve w/ 0, specify type of data (SZ for string + DWORD for int), and the value to store
 
-def reg_read_str(k, name, default=None):
+def reg_read_str(k, name, default=None): # To load values from registry
     try:
-        v, _ = winreg.QueryValueEx(k, name)
-        return str(v)
+        v, _ = winreg.QueryValueEx(k, name)   # Open key, find name of value within
+        return str(v)                         # return for later use
     except FileNotFoundError:
         return default
 
@@ -194,7 +194,7 @@ def enable_session_paste(event=None): # Enable paste for the session for ease of
     messagebox.showinfo("Paste Enabled", "Paste is now enabled for this session in Username & Password fields.")
 app.bind_all("<Control-Alt-p>", enable_session_paste)
 
-def on_close():
+def on_close(): # To ensure the user cannot try to brute force and close before being blocked
     if login_started and not login_successful:
         block_current_user()
     app.destroy()
@@ -299,4 +299,5 @@ login_button.pack(pady=16)
 
 update_countdown()
 app.mainloop()
+
 
