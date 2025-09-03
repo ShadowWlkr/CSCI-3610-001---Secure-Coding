@@ -77,9 +77,24 @@ dist/Project_0-Secure_Login_Pretest.exe
 
 ## ⚠️ Notes
 
-- Running inside a VM or with a debugger will cause the program to exit immediately.  
-- Too many failed login attempts will block your user/device.  
-- For testing:  
-  - Default credentials are defined in the source (`Mohg, Lord of Blood`, `IOweUCookoutIGuess!23#`).
-  - Use the builti-in shortcut to allow for pasting ('ctrl -a -p')
-- Session is limited to **120 seconds** for security.  
+- **Anti-Debug & Anti-VM:**  
+  The application will immediately exit if a debugger or virtual machine environment is detected.
+
+- **Account Lockout:**  
+  Too many failed login attempts will block your user/device.  
+  - If this happens during testing, you can manually unblock yourself:  
+    1. Press **Win + R**, type `regedit`, and press Enter.  
+    2. Navigate to the registry path used by the app and remove your entry from the **Blocked Users** list.  
+    ⚠️ Only do this for testing. In a real deployment, blocked users would remain blocked at the server side.
+
+- **Testing Credentials:**  
+  - Default username: **`Mohg, Lord of Blood`**  
+  - Default password: **`IOweUCookoutIGuess!23#`**
+
+- **Paste Shortcut:**  
+  To simplify testing long credentials, you can temporarily enable copy–paste in the login fields with the shortcut: **Ctrl + Alt + P**  
+  - This is intended **only for ease of testing**. It is not a feature that would exist in production-ready secure code.
+
+- **Session Timeout:**  
+  Each login session is limited to **120 seconds** to reduce exposure to brute-force attempts.
+
