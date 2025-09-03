@@ -47,6 +47,12 @@ Before building, you **must** obfuscate the code with PyArmor:
 pyarmor gen Project_0-Secure_Login_Pretest.py --output dist-obf
 ```
 
+- If the terminal says that pyarmor does not exists or cannot find path use this command instead.
+  
+```bash
+python -m pyarmor.cli gen Project_0-Secure_Login_Pretest.py --output dist-obf
+```
+
 This generates an obfuscated version of the code inside the `dist-obf/` directory.
 
 ---
@@ -57,6 +63,12 @@ Once obfuscated, package it with PyInstaller using the `.spec` file:
 
 ```bash
 pyinstaller Project_0-Secure_Login_Pretest.spec
+```
+
+- If the terminal says that pyinstaller does exists or cannot find path use this command instead.
+
+```bash
+python -m PyInstaller Project_0-Secure_Login_Pretest.spec
 ```
 
 This includes the anti-debugging hook and bundles everything into an executable.
