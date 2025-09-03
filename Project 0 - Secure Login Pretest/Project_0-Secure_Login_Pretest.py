@@ -1,4 +1,4 @@
-import sys  # Imports: Many of these are for hashing, GUI, system control, and registry access
+import sys  
 import os
 import time
 import re
@@ -299,3 +299,4 @@ login_button.pack(pady=16)
 
 update_countdown()
 app.mainloop()
+
