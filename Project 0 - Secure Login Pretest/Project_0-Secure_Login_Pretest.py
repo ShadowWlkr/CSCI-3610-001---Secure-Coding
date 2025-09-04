@@ -65,35 +65,35 @@ def reg_read_str(k, name, default=None): # To load values from registry
         return default
 
 # ==================== Fingerprinting & Blocklist ====================
-def get_device_fingerprint():
-    user = getpass.getuser()
-    hostname = socket.gethostname()
+def get_device_fingerprint(): # Made to create a unique fingerprint/id of the computer using the program, used to block user if failed to login or attempted hacking
+    user = getpass.getuser() 
+    hostname = socket.gethostname() 
     mac = uuid.getnode()
-    fingerprint_str = f"{user}@{hostname}-{mac}"
-    return hashlib.sha256(fingerprint_str.encode()).hexdigest()
+    fingerprint_str = f"{user}@{hostname}-{mac}" # Combine user, hostname of the machine, and MAC to then 
+    return hashlib.sha256(fingerprint_str.encode()).hexdigest() # Be returned as a hashed value to be used in blocking the user if necessary 
 
-def is_user_blocked():
+def is_user_blocked(): # Made to determine if user accessing program is blocked from accessing by checking Registry value
     try:
-        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_READ)
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_READ) # Open registry key using root level given path to the blocked users and ONLY reads the value to k the handle
         try:
-            value = reg_read_str(k, get_device_fingerprint())
+            value = reg_read_str(k, get_device_fingerprint()) # Read from blocked list given the fingerprint of computer, see if on list
             return value == "blocked"
         finally:
-            winreg.CloseKey(k)
+            winreg.CloseKey(k) # Release handle to registry to prevent mem. leaks
     except FileNotFoundError:
         return False
 
-def block_current_user():
-    k = _ensure_key(BLOCKED_USERS_PATH)
+def block_current_user(): # Made to block user if failed to login, attempted brute force, etc. 
+    k = _ensure_key(BLOCKED_USERS_PATH) # Ensure key with blocked users sub key exists
     try:
-        reg_write(k, get_device_fingerprint(), "blocked", winreg.REG_SZ)
+        reg_write(k, get_device_fingerprint(), "blocked", winreg.REG_SZ) # Write user's fingerprint to registry
     finally:
         winreg.CloseKey(k)
 
-def unblock_current_user():
+def unblock_current_user(): # Made to unblock user after successful login
     try:
-        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_ALL_ACCESS)
-        winreg.DeleteValue(k, get_device_fingerprint())
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_ALL_ACCESS) # Open registry key with read and write permissions and 
+        winreg.DeleteValue(k, get_device_fingerprint()) # Remove current users fingerprint from values
         winreg.CloseKey(k)
     except FileNotFoundError:
         pass
@@ -299,5 +299,6 @@ login_button.pack(pady=16)
 
 update_countdown()
 app.mainloop()
+
 
 
