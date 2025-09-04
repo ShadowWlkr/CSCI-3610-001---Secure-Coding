@@ -111,6 +111,31 @@ dist/Project_0-Secure_Login_Pretest.exe
 
 ---
 
-## Code Explination
+## 📚 Libraries & References
+
+Your project uses both **built-in Python standard libraries** and **third-party libraries**.  
+
+### 🔹 Standard Libraries (included with Python)
+- [sys](https://docs.python.org/3/library/sys.html) – System-specific parameters and functions (used for exiting, debugger detection).  
+- [os](https://docs.python.org/3/library/os.html) – Operating system interfaces (used for generating salts, environment interaction).  
+- [time](https://docs.python.org/3/library/time.html) – Time access and conversions (used for login delays).  
+- [re](https://docs.python.org/3/library/re.html) – Regular expressions (used for validating usernames).  
+- [hmac](https://docs.python.org/3/library/hmac.html) – Secure message authentication (used for constant-time password comparisons).  
+- [hashlib](https://docs.python.org/3/library/hashlib.html) – Secure hash algorithms, including PBKDF2-HMAC.  
+- [getpass](https://docs.python.org/3/library/getpass.html) – Get user login name (used in fingerprinting).  
+- [socket](https://docs.python.org/3/library/socket.html) – Network interfaces (used for hostname retrieval).  
+- [uuid](https://docs.python.org/3/library/uuid.html) – UUID and MAC address utilities.  
+- [datetime](https://docs.python.org/3/library/datetime.html) – Date and time (used for credential creation timestamps).  
+- [platform](https://docs.python.org/3/library/platform.html) – System platform information (used in VM detection).  
+- [tkinter](https://docs.python.org/3/library/tkinter.html) – Standard GUI toolkit for Python.  
+- [tkinter.messagebox](https://docs.python.org/3/library/tkinter.messagebox.html) – Pop-up message dialogs.  
+- [winreg](https://docs.python.org/3/library/winreg.html) – Windows Registry access (used for user/blocklist storage).  
+
+### 🔹 Third-Party Libraries
+- [ttkbootstrap](https://ttkbootstrap.readthedocs.io/en/latest/) – A modern-themed wrapper around Tkinter’s `ttk` widgets for styled GUIs.  
+- [PyInstaller](https://pyinstaller.org/en/stable/) – Freezes Python scripts into standalone executables; you used a `.spec` file to control build settings.  
+- [PyArmor](https://github.com/dashingsoft/pyarmor) – Code obfuscation tool for protecting Python scripts.  
+- [UPX](https://upx.github.io/) – (Optional) Ultimate Packer for Executables, used to compress your final binary.  
+
 
 
