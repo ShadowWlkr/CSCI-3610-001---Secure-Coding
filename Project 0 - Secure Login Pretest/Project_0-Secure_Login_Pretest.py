@@ -99,29 +99,31 @@ def unblock_current_user(): # Made to unblock user after successful login
         pass
 
 # ==================== User Store ====================
-USERNAME_RE = re.compile(r"^[\w .,'-]{3,64}$")
+USERNAME_RE = re.compile(r"^[\w .,'-]{3,64}$") # Regex used to ensure only valid usernames are allowed, especailly if expanding to more than default user
 
 def validate_username(u: str) -> bool:
-    return bool(USERNAME_RE.fullmatch(u.strip()))
+    return bool(USERNAME_RE.fullmatch(u.strip())) # Remove any whitespace, and ensures string matches regex
 
-def pbkdf2_hash(password: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes:
-    return hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), salt, iterations)
+def pbkdf2_hash(password: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes: # To secure password hash using PBKDF2-HMAC 
+    return hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), salt, iterations) # Create hash of password using SHA256, pass in the password encoded by utf-8
 
-def get_user_key(username: str):
+def get_user_key(username: str): # To create user subkey if it does not exist already so that the value (fingerprint) can be stored there
     return _ensure_key(USERS_KEY_PATH + fr"\{username}")
 
 def ensure_user_credentials(username: str, plaintext_password: str = None):
     try:
-        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ)
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ) # Open registry and see if users fingerprint is in the subkey
         winreg.CloseKey(k)
         return
-    except FileNotFoundError:
+    except FileNotFoundError: # If user is not found, add new user by
         if plaintext_password is None:
             return
-        k = get_user_key(username)
+        k = get_user_key(username) # Creating new subkey for user
         try:
-            salt = os.urandom(SALT_LEN)
-            h = pbkdf2_hash(plaintext_password, salt)
+            salt = os.urandom(SALT_LEN) # Generate pseudo-random salt
+            h = pbkdf2_hash(plaintext_password, salt) # And create a hash for the password of the user
+
+            # Write all info needed for the user to be properly stored in the registry
             reg_write(k, "username", username)
             reg_write(k, "salt_hex", salt.hex())
             reg_write(k, "hash_hex", h.hex())
@@ -299,6 +301,7 @@ login_button.pack(pady=16)
 
 update_countdown()
 app.mainloop()
+
 
 
 
