@@ -4,9 +4,9 @@ import time
 import re
 import hmac # Used for secure comparison for password hashes
 import hashlib # Used to perform secure hashing (SHA-256 + PBKDF2) for both password protection and device fingerprinting
-import getpass # Used to retrieve the current system username, used in fingerprinting the users computer
+import getpass # Used to retrieve the current system username, used in fingerprinting the user's computer
 import socket # Used to get host name of who is running the program, used in fingerprinting
-import uuid # Used to get MAC address of the users computer, used in fingerprinting
+import uuid # Used to get MAC address of the user's computer, used in fingerprinting
 from datetime import datetime
 import winreg # Used to interact with the Windows Registry, to simulate server-side of program
 import ttkbootstrap as tb
@@ -16,7 +16,7 @@ from tkinter import messagebox
 """
 ===== Should Resist =====
     - Debuggers       → exits if traced
-    - Virtual Machines → fuses VM environments
+    - Virtual Machines → refuses VM environments
     - Brute-force     → max attempts + delay + block
     - Reverse Eng.    → PyArmor obfuscation
     - Static Analysis → stripped, UPX packed
@@ -27,13 +27,13 @@ from tkinter import messagebox
 """
 # ==================== App Config ====================
 APP_REG_PATH = r"Software\Project_0-Secure_Login_Pretest" # Custom registry path to isolate data from common locations
-USERS_KEY_PATH = APP_REG_PATH + r"\Users" # Used to house the hashed default username and password in register as if in serverside
-BLOCKED_USERS_PATH = APP_REG_PATH + r"\Blocked" # Used to house the hashed blocked user info in register as if in serverside
+USERS_KEY_PATH = APP_REG_PATH + r"\Users" # Used to house the hashed default username and password in registry as if on server-side
+BLOCKED_USERS_PATH = APP_REG_PATH + r"\Blocked" # Used to house the hashed blocked user info in registry as if on server-side
 
 # Session limitations to reduce brute force and time-based attacks
 MAX_RUNTIME_SECONDS = 120 # Prevents long-running access attempts (e.g., time-based enumeration)
 MAX_ATTEMPTS = 3 # Limits brute force attempts
-FAILURE_DELAY_SECONDS = 1.0 # Slow down attackers in how fast they can input their attempts
+FAILURE_DELAY_SECONDS = 1.0 # Slows down attackers in how fast they can input their attempts
 
 # Strong password hashing parameters
 PBKDF2_ITERATIONS = 200_000 # High iteration count == High computational cost for attackers
@@ -52,76 +52,76 @@ FORBIDDEN_USERNAMES = {
 
 # ==================== Registry Helpers ====================
 def _ensure_key(path: str): # To create key (folder in Registry data) to house all subkeys and values
-    return winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, path, 0, winreg.KEY_ALL_ACCESS) # Get root key, create that key from specified path in registry, 0 for reserved idky, and allow access to write and update values in this key
+    return winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, path, 0, winreg.KEY_ALL_ACCESS) # Get root key, create that key from specified path in registry, 0 for reserved, and allow access to write and update values in this key
 
 def reg_write(k, name, value, kind=winreg.REG_SZ): # To write a value into the Windows Registry under an already opened key handle k
-    winreg.SetValueEx(k, name, 0, kind, value) # Open registry key, name value, reserve w/ 0, specify type of data (SZ for string + DWORD for int), and the value to store
+    winreg.SetValueEx(k, name, 0, kind, value) # Open registry key, name value, reserve w/ 0, specify type of data (SZ for string or DWORD for int), and the value to store
 
 def reg_read_str(k, name, default=None): # To load values from registry
     try:
         v, _ = winreg.QueryValueEx(k, name)   # Open key, find name of value within
-        return str(v)                         # return for later use
+        return str(v)                         # Return for later use
     except FileNotFoundError:
         return default
 
 # ==================== Fingerprinting & Blocklist ====================
-def get_device_fingerprint(): # Made to create a unique fingerprint/id of the computer using the program, used to block user if failed to login or attempted hacking
+def get_device_fingerprint(): # Creates a unique fingerprint/ID of the computer using the program, used to block user if login fails or hacking is attempted
     user = getpass.getuser() 
     hostname = socket.gethostname() 
     mac = uuid.getnode()
-    fingerprint_str = f"{user}@{hostname}-{mac}" # Combine user, hostname of the machine, and MAC to then 
-    return hashlib.sha256(fingerprint_str.encode()).hexdigest() # Be returned as a hashed value to be used in blocking the user if necessary 
+    fingerprint_str = f"{user}@{hostname}-{mac}" # Combine user, hostname of the machine, and MAC address
+    return hashlib.sha256(fingerprint_str.encode()).hexdigest() # Return as a hashed value to be used in blocking the user if necessary 
 
-def is_user_blocked(): # Made to determine if user accessing program is blocked from accessing by checking Registry value
+def is_user_blocked(): # Determines if user accessing program is blocked from access by checking Registry value
     try:
-        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_READ) # Open registry key using root level given path to the blocked users and ONLY reads the value to k the handle
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_READ) # Open registry key using root-level given path to blocked users and ONLY read value into handle k
         try:
             value = reg_read_str(k, get_device_fingerprint()) # Read from blocked list given the fingerprint of computer, see if on list
             return value == "blocked"
         finally:
-            winreg.CloseKey(k) # Release handle to registry to prevent mem. leaks
+            winreg.CloseKey(k) # Release handle to registry to prevent memory leaks
     except FileNotFoundError:
         return False
 
-def block_current_user(): # Made to block user if failed to login, attempted brute force, etc. 
-    k = _ensure_key(BLOCKED_USERS_PATH) # Ensure key with blocked users sub key exists
+def block_current_user(): # Blocks user if login fails, brute force attempted, etc. 
+    k = _ensure_key(BLOCKED_USERS_PATH) # Ensure key with blocked users subkey exists
     try:
         reg_write(k, get_device_fingerprint(), "blocked", winreg.REG_SZ) # Write user's fingerprint to registry
     finally:
         winreg.CloseKey(k)
 
-def unblock_current_user(): # Made to unblock user after successful login
+def unblock_current_user(): # Unblocks user after successful login
     try:
-        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_ALL_ACCESS) # Open registry key with read and write permissions and 
-        winreg.DeleteValue(k, get_device_fingerprint()) # Remove current users fingerprint from values
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, BLOCKED_USERS_PATH, 0, winreg.KEY_ALL_ACCESS) # Open registry key with read and write permissions 
+        winreg.DeleteValue(k, get_device_fingerprint()) # Remove current user's fingerprint from values
         winreg.CloseKey(k)
     except FileNotFoundError:
         pass
 
 # ==================== User Store ====================
-USERNAME_RE = re.compile(r"^[\w .,'-]{3,64}$") # Regex used to ensure only valid usernames are allowed, especailly if expanding to more than default user
+USERNAME_RE = re.compile(r"^[\w .,'-]{3,64}$") # Regex used to ensure only valid usernames are allowed, especially if expanding to more than default user
 
 def validate_username(u: str) -> bool:
-    return bool(USERNAME_RE.fullmatch(u.strip())) # Remove any whitespace, and ensures string matches regex
+    return bool(USERNAME_RE.fullmatch(u.strip())) # Remove any whitespace, and ensure string matches regex
 
-def pbkdf2_hash(password: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes: # To secure password hash using PBKDF2-HMAC 
-    return hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), salt, iterations) # Create hash of password using SHA256, pass in the password encoded by utf-8
+def pbkdf2_hash(password: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes: # Secure password hash using PBKDF2-HMAC 
+    return hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), salt, iterations) # Create hash of password using SHA256, pass in the password encoded by UTF-8
 
 def get_user_key(username: str): # To create user subkey if it does not exist already so that the value (fingerprint) can be stored there
     return _ensure_key(USERS_KEY_PATH + fr"\{username}")
 
-def ensure_user_credentials(username: str, plaintext_password: str = None): # To ensure user has a subkey in registry to hold values, else create one
+def ensure_user_credentials(username: str, plaintext_password: str = None): # Ensures user has a subkey in registry to hold values, else create one
     try:
-        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ) # Open registry and see if users fingerprint is in the subkey
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ) # Open registry and see if user's fingerprint is in the subkey
         winreg.CloseKey(k)
         return
-    except FileNotFoundError: # If user is not found, add new user by
+    except FileNotFoundError: # If user is not found, add new user
         if plaintext_password is None:
             return
-        k = get_user_key(username) # Creating new subkey for user
+        k = get_user_key(username) # Create new subkey for user
         try:
             salt = os.urandom(SALT_LEN) # Generate pseudo-random salt
-            h = pbkdf2_hash(plaintext_password, salt) # And create a hash for the password of the user
+            h = pbkdf2_hash(plaintext_password, salt) # Create a hash for the password of the user
 
             # Write all info needed for the user to be properly stored in the registry
             reg_write(k, "username", username)
@@ -132,7 +132,7 @@ def ensure_user_credentials(username: str, plaintext_password: str = None): # To
         finally:
             winreg.CloseKey(k)
 
-def load_user_record(username: str): # To load all values of user to local variables in program for ease of use
+def load_user_record(username: str): # Load all values of user to local variables in program for ease of use
     try:
         k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ) # Create handle to be used for values in subkey
     except FileNotFoundError:
@@ -154,31 +154,31 @@ def verify_user_password(username: str, password: str) -> bool: # Checks if pass
     if not rec or not rec["salt"] or not rec["hash"]: # If info is incomplete, then there is not enough data to compare to
         _ = hmac.compare_digest(bytes.fromhex(DUMMY_HASH_HEX), bytes.fromhex(DUMMY_HASH_HEX)) # Compare dummy hash to itself to prevent timing attack
         return False
-    candidate = hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), rec["salt"], rec["iterations"]) # Hash and salt the entered password the same as the stored one,
-    return hmac.compare_digest(candidate, rec["hash"]) # Used hmac to return a == b to prevent timing analysis
+    candidate = hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), rec["salt"], rec["iterations"]) # Hash and salt the entered password the same as the stored one
+    return hmac.compare_digest(candidate, rec["hash"]) # Use hmac to return a == b to prevent timing analysis
 
 # ==================== Pre-form startup ====================
 _ensure_key(APP_REG_PATH) # Create main registry key
 _ensure_key(USERS_KEY_PATH) # Create subkey for users
 _ensure_key(BLOCKED_USERS_PATH) # Create subkey for blocked users
 
-if is_user_blocked(): # To deny access if user is blocked
+if is_user_blocked(): # Deny access if user is blocked
     messagebox.showerror("Access Denied", "You've been blocked from accessing this application.")
     sys.exit(1)
 
-if validate_username(CORRECT_USERNAME): # Ensures default username and password are valid and good to go
+if validate_username(CORRECT_USERNAME): # Ensure default username and password are valid
     try:
         ensure_user_credentials(CORRECT_USERNAME, CORRECT_PASSWORD)
     except Exception:
         pass
 
 # ==================== UI ====================
-# ChatGPT helped declare app as still unsure how to work ttkbootstrap
+# ChatGPT helped declare app since I was unsure how to work ttkbootstrap
 app = tb.Window(themename="cosmo")
 app.title("Login Form")
 app.geometry("480x360")
 app.resizable(False, False)
-app.configure(background="#001f3f")  # Navy blue bg
+app.configure(background="#001f3f")  # Navy blue background
 
 # ChatGPT helped me fix the style to ETSU blue and gold
 style = tb.Style()
@@ -188,17 +188,17 @@ style.configure("TButton", foreground="#001f3f", background="#FFD700")
 
 attempts_left = MAX_ATTEMPTS
 remaining_seconds = MAX_RUNTIME_SECONDS
-paste_enabled_session = False # Disabbled pasting to ensure only typed usernames and passwords were allowed, raising the computaional costs
-login_started = False # Used to see if user has attempted to login, signifing if it was an accedential run or purposful run to gain entry ethically or unethically
-login_successful = False # Used to unblock user after they have attempted to start logining in
+paste_enabled_session = False # Disabled pasting to ensure only typed usernames and passwords are allowed, raising computational costs
+login_started = False # Used to see if user has attempted to login, signifying if it was an accidental run or purposeful run to gain entry ethically or unethically
+login_successful = False # Used to unblock user after they have attempted to start logging in
 
-def enable_session_paste(event=None): # Enable paste for the session for ease of testing compared to tpying in a long 25char password
+def enable_session_paste(event=None): # Enable paste for the session for ease of testing compared to typing in a long 25-character password
     global paste_enabled_session
     paste_enabled_session = True
     messagebox.showinfo("Paste Enabled", "Paste is now enabled for this session in Username & Password fields.")
 app.bind_all("<Control-Alt-p>", enable_session_paste) # ChatGPT helped me figure out a command that would be reasonable for this type of function
 
-def on_close(): # To ensure the user cannot try to brute force and close before being blocked
+def on_close(): # Ensure the user cannot try brute force and close before being blocked
     if login_started and not login_successful:
         block_current_user()
     app.destroy()
@@ -221,9 +221,9 @@ def disable_copy_paste(entry_widget): # Main method to fully disable paste using
 
 def update_countdown():
     global remaining_seconds
-    mins, secs = divmod(max(remaining_seconds, 0), 60) # Convert seconds to minutes by spliting remaing seconds
+    mins, secs = divmod(max(remaining_seconds, 0), 60) # Convert seconds to minutes by splitting remaining seconds
     countdown_label.config(text=f"Time left: {mins:02d}:{secs:02d}") 
-    if remaining_seconds <= 0: # End session if user took too long, should potentially block user anyway for taking too long as could be potentially trying to run debugger if they got past the antidebug policy
+    if remaining_seconds <= 0: # End session if user took too long, could potentially block user anyway for taking too long as they may be trying to run a debugger if they bypassed anti-debug policy
         messagebox.showerror("Session Timeout", "Time expired. Program will close.")
         app.destroy()
         sys.exit(0)
@@ -232,8 +232,8 @@ def update_countdown():
         app.after(1000, update_countdown)
 
 def attempt_login(): # Where the login magic happens
-    global attempts_left, login_started, login_successful # Global login relevent variables so it changes across program
-    login_started = True # They shoot their shot
+    global attempts_left, login_started, login_successful # Global login relevant variables so changes persist across program
+    login_started = True # User attempted login
 
     u = username_entry.get()
     p = password_entry.get()
@@ -244,9 +244,9 @@ def attempt_login(): # Where the login magic happens
         app.destroy()
         sys.exit(0)
 
-    if not validate_username(u): # If username entered were wrong
+    if not validate_username(u): # If username entered was invalid
         attempts_left -= 1
-        time.sleep(FAILURE_DELAY_SECONDS) # Delay still to prevent time attacks
+        time.sleep(FAILURE_DELAY_SECONDS) # Delay to prevent timing attacks
         if attempts_left > 0:
             messagebox.showerror("Login Failed", f"Invalid login.\nAttempts left: {attempts_left}")
         else:
@@ -264,8 +264,8 @@ def attempt_login(): # Where the login magic happens
 
     if password_ok:
         login_successful = True
-        unblock_current_user() # Unblock user from regisrty to allow additional login at later time
-        messagebox.showinfo("Login Successful", "You are successfully logged into the system.\n\"Congrats YOUR in -Jake 2025\"")
+        unblock_current_user() # Unblock user from registry to allow additional login attempts later
+        messagebox.showinfo("Login Successful", "You are successfully logged into the system.\n\"Congrats YOU'RE in -Jake 2025\"")
         app.destroy()
         sys.exit(0)
     else: # Failed login case
@@ -279,7 +279,7 @@ def attempt_login(): # Where the login magic happens
             app.destroy()
             sys.exit(0)
             
-# ChatGPT helped with fixed my layout and design of GUI
+# ChatGPT helped fix layout and design of GUI
 title_label = tb.Label(app, text="Welcome to Hell! Good Luck!", font=("Helvetica", 18, "bold"))
 title_label.pack(pady=(10, 6))
 
@@ -305,10 +305,5 @@ disable_copy_paste(password_entry) # Disable paste for password for session
 login_button = tb.Button(app, text="Login", bootstyle="primary", command=attempt_login)
 login_button.pack(pady=16)
 
-update_countdown() # Begin countdown and
+update_countdown() # Begin countdown
 app.mainloop()     # Run app
-
-
-
-
-

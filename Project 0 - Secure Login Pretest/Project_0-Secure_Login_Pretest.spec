@@ -1,4 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Used ChatGPT to edit my .spec file for PyInstaller after it kept throwing errors (not recognizing hidden imports);
+# I added explicit hiddenimports, a runtime anti-debug hook, and enabled strip/UPX to produce a smaller GUI build.
+
 import os
 
 block_cipher = None
