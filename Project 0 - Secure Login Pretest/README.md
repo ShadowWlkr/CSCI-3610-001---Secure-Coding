@@ -29,7 +29,6 @@ This project demonstrates how to build a secure GUI login system with registry-b
 - [PyInstaller](https://pyinstaller.org/)  
 - [ttkbootstrap](https://pypi.org/project/ttkbootstrap/)  
 - [PyArmor](https://github.com/dashingsoft/pyarmor) (**Required**)  
-- Optional: [UPX](https://upx.github.io/) for additional packing
 
 Install dependencies:
 
