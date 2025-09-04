@@ -41,7 +41,7 @@ HASH_ALG = "sha256" # Type of hashing algorithm used for passwords and fingerpri
 SALT_LEN = 16 # Length of salt added before hashing valuable data
 
 # Hardcoded credentials
-CORRECT_USERNAME = "Mohg, Lord of Blood"
+CORRECT_USERNAME = "Mohg, Lord of Blood" # Who doesn't like Elden Ring, at least the boss names
 CORRECT_PASSWORD = "IOweUCookoutIGuess!23#" # Not really
 DUMMY_HASH_HEX = "c15fcb7fc756ca25f530f150efb659f4422bdbf1aa9ba66794891c540dba0db1"  # Used to mitigate timing attacks when username is invalid
 
@@ -110,7 +110,7 @@ def pbkdf2_hash(password: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS)
 def get_user_key(username: str): # To create user subkey if it does not exist already so that the value (fingerprint) can be stored there
     return _ensure_key(USERS_KEY_PATH + fr"\{username}")
 
-def ensure_user_credentials(username: str, plaintext_password: str = None):
+def ensure_user_credentials(username: str, plaintext_password: str = None): # To ensure user has a subkey in registry to hold values, else create one
     try:
         k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ) # Open registry and see if users fingerprint is in the subkey
         winreg.CloseKey(k)
@@ -132,16 +132,16 @@ def ensure_user_credentials(username: str, plaintext_password: str = None):
         finally:
             winreg.CloseKey(k)
 
-def load_user_record(username: str):
+def load_user_record(username: str): # To load all values of user to local variables in program for ease of use
     try:
-        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ)
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, USERS_KEY_PATH + fr"\{username}", 0, winreg.KEY_READ) # Create handle to be used for values in subkey
     except FileNotFoundError:
         return None
     try:
         salt_hex = reg_read_str(k, "salt_hex")
         hash_hex = reg_read_str(k, "hash_hex")
         iterations = int(reg_read_str(k, "iterations", str(PBKDF2_ITERATIONS)))
-        return {
+        return { # Return hex into bytes for hashing
             "salt": bytes.fromhex(salt_hex) if salt_hex else None,
             "hash": bytes.fromhex(hash_hex) if hash_hex else None,
             "iterations": iterations
@@ -149,36 +149,38 @@ def load_user_record(username: str):
     finally:
         winreg.CloseKey(k)
 
-def verify_user_password(username: str, password: str) -> bool:
-    rec = load_user_record(username)
-    if not rec or not rec["salt"] or not rec["hash"]:
-        _ = hmac.compare_digest(bytes.fromhex(DUMMY_HASH_HEX), bytes.fromhex(DUMMY_HASH_HEX))
+def verify_user_password(username: str, password: str) -> bool: # Checks if password given matches stored credentials by rehashing it
+    rec = load_user_record(username) # Load user info
+    if not rec or not rec["salt"] or not rec["hash"]: # If info is incomplete, then there is not enough data to compare to
+        _ = hmac.compare_digest(bytes.fromhex(DUMMY_HASH_HEX), bytes.fromhex(DUMMY_HASH_HEX)) # Compare dummy hash to itself to prevent timing attack
         return False
-    candidate = hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), rec["salt"], rec["iterations"])
-    return hmac.compare_digest(candidate, rec["hash"])
+    candidate = hashlib.pbkdf2_hmac(HASH_ALG, password.encode("utf-8"), rec["salt"], rec["iterations"]) # Hash and salt the entered password the same as the stored one,
+    return hmac.compare_digest(candidate, rec["hash"]) # Used hmac to return a == b to prevent timing analysis
 
 # ==================== Pre-form startup ====================
-_ensure_key(APP_REG_PATH)
-_ensure_key(USERS_KEY_PATH)
-_ensure_key(BLOCKED_USERS_PATH)
+_ensure_key(APP_REG_PATH) # Create main registry key
+_ensure_key(USERS_KEY_PATH) # Create subkey for users
+_ensure_key(BLOCKED_USERS_PATH) # Create subkey for blocked users
 
-if is_user_blocked():
+if is_user_blocked(): # To deny access if user is blocked
     messagebox.showerror("Access Denied", "You've been blocked from accessing this application.")
     sys.exit(1)
 
-if validate_username(CORRECT_USERNAME):
+if validate_username(CORRECT_USERNAME): # Ensures default username and password are valid and good to go
     try:
         ensure_user_credentials(CORRECT_USERNAME, CORRECT_PASSWORD)
     except Exception:
         pass
 
 # ==================== UI ====================
+# ChatGPT helped declare app as still unsure how to work ttkbootstrap
 app = tb.Window(themename="cosmo")
 app.title("Login Form")
 app.geometry("480x360")
 app.resizable(False, False)
-app.configure(background="#001f3f")  # Navy blue background
+app.configure(background="#001f3f")  # Navy blue bg
 
+# ChatGPT helped me fix the style to ETSU blue and gold
 style = tb.Style()
 style.configure("TLabel", foreground="#FFD700", background="#001f3f")   # Gold text
 style.configure("TEntry", fieldbackground="#f0f0f0", foreground="#000000")  # Keep entries legible
@@ -186,15 +188,15 @@ style.configure("TButton", foreground="#001f3f", background="#FFD700")
 
 attempts_left = MAX_ATTEMPTS
 remaining_seconds = MAX_RUNTIME_SECONDS
-paste_enabled_session = False
-login_started = False
-login_successful = False
+paste_enabled_session = False # Disabbled pasting to ensure only typed usernames and passwords were allowed, raising the computaional costs
+login_started = False # Used to see if user has attempted to login, signifing if it was an accedential run or purposful run to gain entry ethically or unethically
+login_successful = False # Used to unblock user after they have attempted to start logining in
 
 def enable_session_paste(event=None): # Enable paste for the session for ease of testing compared to tpying in a long 25char password
     global paste_enabled_session
     paste_enabled_session = True
     messagebox.showinfo("Paste Enabled", "Paste is now enabled for this session in Username & Password fields.")
-app.bind_all("<Control-Alt-p>", enable_session_paste)
+app.bind_all("<Control-Alt-p>", enable_session_paste) # ChatGPT helped me figure out a command that would be reasonable for this type of function
 
 def on_close(): # To ensure the user cannot try to brute force and close before being blocked
     if login_started and not login_successful:
@@ -203,12 +205,14 @@ def on_close(): # To ensure the user cannot try to brute force and close before 
     sys.exit(0)
 app.protocol("WM_DELETE_WINDOW", on_close)
 
-def allow_paste_now(widget): return paste_enabled_session and (widget is username_entry or widget is password_entry)
-def on_ctrl_c(e): return "break"
+def allow_paste_now(widget): return paste_enabled_session and (widget is username_entry or widget is password_entry) # Used to check if pasting is allowed in the session using the command
+
+# Short methods to block paste with common shortcuts
+def on_ctrl_c(e): return "break" 
 def on_ctrl_v(e): return None if allow_paste_now(e.widget) else "break"
 def on_ctrl_x(e): return "break"
 def on_shift_insert(e): return None if allow_paste_now(e.widget) else "break"
-def disable_copy_paste(entry_widget):
+def disable_copy_paste(entry_widget): # Main method to fully disable paste using short methods
     entry_widget.bind("<Button-3>", lambda e: "break")
     entry_widget.bind("<Control-c>", on_ctrl_c)
     entry_widget.bind("<Control-v>", on_ctrl_v)
@@ -217,9 +221,9 @@ def disable_copy_paste(entry_widget):
 
 def update_countdown():
     global remaining_seconds
-    mins, secs = divmod(max(remaining_seconds, 0), 60)
-    countdown_label.config(text=f"Time left: {mins:02d}:{secs:02d}")
-    if remaining_seconds <= 0:
+    mins, secs = divmod(max(remaining_seconds, 0), 60) # Convert seconds to minutes by spliting remaing seconds
+    countdown_label.config(text=f"Time left: {mins:02d}:{secs:02d}") 
+    if remaining_seconds <= 0: # End session if user took too long, should potentially block user anyway for taking too long as could be potentially trying to run debugger if they got past the antidebug policy
         messagebox.showerror("Session Timeout", "Time expired. Program will close.")
         app.destroy()
         sys.exit(0)
@@ -227,22 +231,22 @@ def update_countdown():
         remaining_seconds -= 1
         app.after(1000, update_countdown)
 
-def attempt_login():
-    global attempts_left, login_started, login_successful
-    login_started = True
+def attempt_login(): # Where the login magic happens
+    global attempts_left, login_started, login_successful # Global login relevent variables so it changes across program
+    login_started = True # They shoot their shot
 
     u = username_entry.get()
     p = password_entry.get()
 
-    if u.strip().lower() in FORBIDDEN_USERNAMES:
+    if u.strip().lower() in FORBIDDEN_USERNAMES: # If user attempts to do the unthinkable, stop program and block user 
         block_current_user()
-        messagebox.showerror("Nope", "Really? Do I look that dumb... I am, but still.")
+        messagebox.showerror("Nope", "Really? Do I look that dumb... I am, but still.") # LOL
         app.destroy()
         sys.exit(0)
 
-    if not validate_username(u):
+    if not validate_username(u): # If username entered were wrong
         attempts_left -= 1
-        time.sleep(FAILURE_DELAY_SECONDS)
+        time.sleep(FAILURE_DELAY_SECONDS) # Delay still to prevent time attacks
         if attempts_left > 0:
             messagebox.showerror("Login Failed", f"Invalid login.\nAttempts left: {attempts_left}")
         else:
@@ -252,19 +256,19 @@ def attempt_login():
             sys.exit(0)
         return
 
-    if u.strip() == CORRECT_USERNAME:
+    if u.strip() == CORRECT_USERNAME: # If username is correct, check password
         password_ok = verify_user_password(u.strip(), p)
     else:
-        _ = hmac.compare_digest(bytes.fromhex(DUMMY_HASH_HEX), bytes.fromhex(DUMMY_HASH_HEX))
+        _ = hmac.compare_digest(bytes.fromhex(DUMMY_HASH_HEX), bytes.fromhex(DUMMY_HASH_HEX)) # Compare dummy hash to itself to prevent timing attack
         password_ok = False
 
     if password_ok:
         login_successful = True
-        unblock_current_user()
+        unblock_current_user() # Unblock user from regisrty to allow additional login at later time
         messagebox.showinfo("Login Successful", "You are successfully logged into the system.\n\"Congrats YOUR in -Jake 2025\"")
         app.destroy()
         sys.exit(0)
-    else:
+    else: # Failed login case
         attempts_left -= 1
         time.sleep(FAILURE_DELAY_SECONDS)
         if attempts_left > 0:
@@ -274,7 +278,8 @@ def attempt_login():
             messagebox.showerror("Locked Out", "Too many failed attempts.\nProgram will close.")
             app.destroy()
             sys.exit(0)
-
+            
+# ChatGPT helped with fixed my layout and design of GUI
 title_label = tb.Label(app, text="Welcome to Hell! Good Luck!", font=("Helvetica", 18, "bold"))
 title_label.pack(pady=(10, 6))
 
@@ -292,15 +297,17 @@ pw_row = tb.Frame(app)
 pw_row.pack()
 password_entry = tb.Entry(pw_row, width=38, show="*")
 password_entry.pack(side="left")
+### End of ChatGPT help with GUI ###
 
-disable_copy_paste(username_entry)
-disable_copy_paste(password_entry)
+disable_copy_paste(username_entry) # Disable paste for username for session
+disable_copy_paste(password_entry) # Disable paste for password for session
 
 login_button = tb.Button(app, text="Login", bootstyle="primary", command=attempt_login)
 login_button.pack(pady=16)
 
-update_countdown()
-app.mainloop()
+update_countdown() # Begin countdown and
+app.mainloop()     # Run app
+
 
 
 
