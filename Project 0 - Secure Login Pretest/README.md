@@ -5,7 +5,7 @@ This project demonstrates how to build a secure GUI login system with registry-b
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 - **`hook_antidebug.py`**  
   Detects debuggers and virtual machine environments. Exits if such conditions are detected.
@@ -23,7 +23,7 @@ This project demonstrates how to build a secure GUI login system with registry-b
 
 ---
 
-## 🛠️ Requirements
+## Requirements
 
 - Python 3.9+ (Windows recommended, due to registry usage but also because I made it only work in Windows, no Kali for you.)  
 - [PyInstaller](https://pyinstaller.org/)  
@@ -38,7 +38,7 @@ pip install pyinstaller pyarmor ttkbootstrap
 
 ---
 
-## 🔒 Obfuscation
+## Obfuscation
 
 Before building, you **must** obfuscate the code with PyArmor:
 
@@ -56,7 +56,7 @@ This generates an obfuscated version of the code inside the `dist-obf/` director
 
 ---
 
-## ⚙️ Building the Executable
+## Building the Executable
 
 Once obfuscated, package it with PyInstaller using the `.spec` file:
 
@@ -74,7 +74,7 @@ This includes the anti-debugging hook and bundles everything into an executable.
 
 ---
 
-## 🚀 Running the App
+## Running the App
 
 After building, the executable will be located in the **`dist/`** folder.  
 Run it by double-clicking or from the terminal:
@@ -85,7 +85,7 @@ dist/Project_0-Secure_Login_Pretest.exe
 
 ---
 
-## ⚠️ Notes
+## Notes
 
 - **Anti-Debug & Anti-VM**  
   The application will immediately exit if a debugger or virtual machine environment is detected.
@@ -95,7 +95,7 @@ dist/Project_0-Secure_Login_Pretest.exe
   - If this happens during testing, you can manually unblock yourself:  
     1. Press **Win + R**, type `regedit`, and press Enter.  
     2. Navigate to the registry path used by the app and remove your entry from the **Blocked Users** list.  
-    ⚠️ Only do this for testing. In a real deployment, blocked users would remain blocked on the server side, and you would need to implement a proper workaround similar to how they would be handled in production.
+    Only do this for testing. In a real deployment, blocked users would remain blocked on the server side, and you would need to implement a proper workaround similar to how they would be handled in production.
 
 - **Testing Credentials**  
   - Default username: **`Mohg, Lord of Blood`**  
@@ -110,7 +110,7 @@ dist/Project_0-Secure_Login_Pretest.exe
 
 ---
 
-## 📚 Libraries & References
+## Libraries & References
 
 Your project uses both **built-in Python standard libraries** and **third-party libraries**.  
 
@@ -130,7 +130,7 @@ Your project uses both **built-in Python standard libraries** and **third-party 
 - [tkinter.messagebox](https://docs.python.org/3/library/tkinter.messagebox.html) – Pop-up message dialogs.  
 - [winreg](https://docs.python.org/3/library/winreg.html) – Windows Registry access (used for user/blocklist storage).  
 
-### 🔹 Third-Party Libraries
+### Third-Party Libraries
 - [ttkbootstrap](https://ttkbootstrap.readthedocs.io/en/latest/) – A modern-themed wrapper around Tkinter’s `ttk` widgets for styled GUIs.  
 - [PyInstaller](https://pyinstaller.org/en/stable/) – Freezes Python scripts into standalone executables; you used a `.spec` file to control build settings.  
 - [PyArmor](https://github.com/dashingsoft/pyarmor) – Code obfuscation tool for protecting Python scripts.  
