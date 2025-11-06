@@ -124,7 +124,7 @@ def issue_jwt(user_id, email):
 
 def verify_jwt(token):
     try:
-        return jwt.decode(token, app.secret_key, algorithms="HS256")                          # Decode and verify JWT with secret key
+        return jwt.decode(token, app.secret_key, algorithms="HS256")                            # Decode and verify JWT with secret key
     except jwt.ExpiredSignatureError:                                                           # Error if expired
         raise Exception("Token expired")
     except jwt.InvalidTokenError:                                                               # Error if invalid or corrupted
