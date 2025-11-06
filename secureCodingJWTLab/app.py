@@ -10,7 +10,7 @@ All implementation details have been omitted for instructional purposes.
 # ---------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------
-from flask import Flask, redirect, request, jsonify, session
+from flask import Flask, redirect, request, jsonify, session, make_response
 import os, sqlite3, jwt, time, requests
 from dotenv import load_dotenv
 from functools import wraps
@@ -151,17 +151,10 @@ def require_auth(f):
 # Protected Routes
 # ---------------------------------------------------------------------------
 
-@app.route("/profile")
+@app.route("/profile")                                                                          # This does not work at all idk why, keeps showing error after authentication
 @require_auth                                                                                   # Protect this route so only authenticated users can access it
 def profile():
     return jsonify({"message": "Authenticated.", "user": request.user})                         # Return confirmation and decoded user info
-
-
-@app.route("/logout")
-def logout():
-    session.clear()                                                                             # Clear all session data
-    return jsonify({"message": "Logged out successfully."})                                     # Logout success message
-
 
 @app.route("/")
 def home():
